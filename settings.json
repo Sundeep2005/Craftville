@@ -6,7 +6,8 @@
   },
   "server": {
     "serverIP": "play.craftville.nl",
-    "serverVersion": "1.21.10"
+    "serverVersion": "1.21.10",
+    "serverStore": "https://craftville.nl/store"
   },
   "channels": {
     "logChannelId": "1450908988987281539"
@@ -38,6 +39,17 @@
     "storeUrl": "https://store.craftville.nl",
     "title": "Craftville Server"
   },
+
+  "roleReaction": {
+  "roles": [
+    { "label": "Evenementen", "roleId": "1451179998223405079", "emoji": "🎮", "description": "Meldingen voor events" },
+    { "label": "Server-Updates", "roleId": "1451180038492786729", "emoji": "🧾", "description": "Updates & bugfixes" },
+    { "label": "Content", "roleId": "1451180215744200735", "emoji": "🎥", "description": "Content meldingen" },
+    { "label": "Roleplay", "roleId": "1451180059418300489", "emoji": "🕵️", "description": "RP meldingen" },
+    { "label": "Politiek", "roleId": "1451180081283334154", "emoji": "🗳️", "description": "Politiek RP meldingen" },
+    { "label": "Deaths", "roleId": "1451180103425065001", "emoji": "☠️", "description": "Deathmeldingen" }
+  ]
+},
 
   "tickets": {
     "oneTicketPerUser": true,
