@@ -48,6 +48,54 @@ module.exports = {
   name: Events.InteractionCreate,
   async execute(interaction, client) {
 
+    const RR_MENU_ID = "rr_select_roles";
+    const RR_MANAGED_ROLE_IDS = [
+      "1451179998223405079",
+      "1451180038492786729",
+      "1451180215744200735",
+      "1451180059418300489",
+      "1451180081283334154",
+      "1451180103425065001"
+    ];
+
+    if (interaction.isStringSelectMenu() && interaction.customId === RR_MENU_ID) {
+      if (!interaction.inGuild()) {
+        return interaction.reply({ content: "❌ Dit kan alleen in een server.", flags: MessageFlags.Ephemeral });
+      }
+
+      if (RR_MANAGED_ROLE_IDS.some(id => id === "ROLE_ID_HIER")) {
+        return interaction.reply({
+          content: "❌ RoleReaction is nog niet ingesteld: ROLE_ID_HIER staat nog in interactionCreate.js",
+          flags: MessageFlags.Ephemeral
+        });
+      }
+
+      const member = interaction.member;
+
+      const selected = interaction.values.map(String);
+      const selectedManaged = selected.filter(id => RR_MANAGED_ROLE_IDS.includes(id));
+      const currentlyHas = RR_MANAGED_ROLE_IDS.filter(id => member.roles.cache.has(id));
+
+      const toAdd = selectedManaged.filter(id => !member.roles.cache.has(id));
+      const toRemove = currentlyHas.filter(id => !selectedManaged.includes(id));
+
+      try {
+        if (toRemove.length) await member.roles.remove(toRemove, "RoleSelect: deselected");
+        if (toAdd.length) await member.roles.add(toAdd, "RoleSelect: selected");
+      } catch (e) {
+        console.error("[RoleReaction] role edit failed:", e);
+        return interaction.reply({
+          content: "❌ Ik kan je rollen niet aanpassen. Check **Manage Roles** + role hierarchy.",
+          flags: MessageFlags.Ephemeral
+        });
+      }
+
+      return interaction.reply({
+        content: `✅ Rollen bijgewerkt! Toegevoegd: **${toAdd.length}** • Verwijderd: **${toRemove.length}**`,
+        flags: MessageFlags.Ephemeral
+      });
+    }
+
     if (interaction.isStringSelectMenu() && interaction.customId === "ticket_select") {
       const type = interaction.values[0];
       const catCfg = settings.tickets.categories?.[type];
