@@ -54,7 +54,7 @@ module.exports = {
 
     await channel.send({ embeds: [embed], components: [row] });
 
-    return interaction.reply({
+    return interaction.editReply({
       embeds: [infoEmbed("✅ Setup geplaatst", `Ticket menu geplaatst in ${channel}.`)],
         flags: MessageFlags.Ephemeral
     });

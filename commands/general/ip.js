@@ -16,6 +16,6 @@ module.exports = {
                 iconURL: settings.bot.footerIcon || undefined
             });
 
-        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 }

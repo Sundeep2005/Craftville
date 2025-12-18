@@ -22,6 +22,7 @@
   "dependencies": {
     "@discordjs/builders": "^1.13.1",
     "@napi-rs/canvas": "^0.1.84",
+    "axios": "^1.13.2",
     "better-sqlite3": "^12.5.0",
     "canvacord": "^6.0.4",
     "canvas": "^3.2.0",
