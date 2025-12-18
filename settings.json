@@ -1,0 +1,103 @@
+{
+  "bot": {
+    "embedColor": "#FFA500",
+    "footerText": "Copyright © 2025 Craftville",
+    "footerIcon": "https://i.imgur.com/0SdWKmO.png"
+  },
+  "server": {
+    "serverIP": "play.craftville.nl",
+    "serverVersion": "1.21.10"
+  },
+  "channels": {
+    "logChannelId": "1450908988987281539"
+  },
+  "roles": {
+    "staffRoleIds": ["1450910722333610058"]
+  },
+
+  "suggestions": {
+    "enabled": true,
+    "channelId": "1451019970036105319",
+    "reactionUp": "👍",
+    "reactionDown": "👎",
+    "thread": {
+      "autoArchiveDuration": 1440,
+      "nameTemplate": "💡 Suggestie van {user}"
+    },
+    "threadEmbed": {
+      "title": "💬 Discussie over deze suggestie",
+      "description": "Gebruik deze thread om te reageren op de suggestie.\n\n✅ Stem via de reacties op het bericht.\n🧵 Reageer hieronder met argumenten/feedback.\n\n🔗 Origineel bericht:\n{link}"
+    }
+  },
+
+  "serverStatus": {
+    "host": "play.craftville.nl",
+    "port": 25565,
+    "updateIntervalSeconds": 10,
+    "websiteUrl": "https://craftville.nl",
+    "storeUrl": "https://store.craftville.nl",
+    "title": "Craftville Server"
+  },
+
+  "tickets": {
+    "oneTicketPerUser": true,
+    "inactivity": {
+      "remindAfterHours": 24,
+      "autoCloseAfterHours": 48
+    },
+    "applicationRoles": [
+      { "label": "Staff Team", "value": "moderator", "emoji": "🛡️" },
+      { "label": "Bouw Team", "value": "builder", "emoji": "🧱" },
+      { "label": "Development Team", "value": "developer", "emoji": "💻" },
+      { "label": "Event Team", "value": "event", "emoji": "🎊" },
+      { "label": "Content Team", "value": "content", "emoji": "🎥" }
+    ],
+    "close": {
+      "deleteChannel": true,
+      "deleteDelaySeconds": 5
+    },
+    "categories": {
+      "support": { "label": "Support", "emoji": "🛟", "categoryId": "1447691254832828457" },
+      "sollicitatie": { "label": "Sollicitatie", "emoji": "📝", "categoryId": "1447772815578366115" },
+      "bug": { "label": "Bug", "emoji": "🐛", "categoryId": "1447772796578041921" },
+      "content": { "label": "Content", "emoji": "🎨", "categoryId": "1447772880891805696" },
+      "refund": { "label": "Refund", "emoji": "💸", "categoryId": "1447772841075282103" },
+      "report": { "label": "Report", "emoji": "🚨", "categoryId": "1447772863401820342" }
+    },
+    "modalQuestions": {
+      "support": [
+        { "id": "subject", "label": "Onderwerp", "style": "SHORT", "required": true, "max": 100 },
+        { "id": "details", "label": "Leg je vraag uit", "style": "PARAGRAPH", "required": true, "max": 1000 }
+      ],
+      "sollicitatie": [
+        { "id": "motivatie", "label": "Naam Leeftijd & je motivatie", "style": "PARAGRAPH", "required": true, "max": 4000 },
+        { "id": "ervaring", "label": "Ervaring als staff", "style": "PARAGRAPH", "required": true, "max": 1200 },
+        { "id": "beschrijving", "label": "Vertel iets over jezelf", "style": "PARAGRAPH", "required": true, "max": 1200 }
+      ],
+      "bug": [
+        { "id": "waar", "label": "Waar heb je de bug gevonden?", "style": "SHORT", "required": true, "max": 120 },
+        { "id": "steps", "label": "Stappen om te reproduceren", "style": "PARAGRAPH", "required": true, "max": 1500 },
+        { "id": "expected", "label": "Verwacht resultaat", "style": "PARAGRAPH", "required": true, "max": 800 },
+        { "id": "actual", "label": "Wat gebeurt er echt?", "style": "PARAGRAPH", "required": true, "max": 800 }
+      ],
+      "content": [
+        { "id": "type", "label": "Type content (bv. TikTok/YouTube/Twitch)", "style": "SHORT", "required": true, "max": 120 },
+        { "id": "portfolio", "label": "Link naar Kanaal/Account", "style": "SHORT", "required": true, "max": 200 },
+        { "id": "kijkers", "label": "Gemiddeld aantal kijkers per stream?", "style": "SHORT", "required": true, "max": 120 },
+        { "id": "Views", "label": "Gemiddeld aantal views per video?", "style": "SHORT", "required": true, "max": 120 },
+        { "id": "voorbeeld", "label": "Deel eerdere Craftville videos/streams", "style": "PARAGRAPH", "required": true, "max": 2000 }
+      ],
+      "refund": [
+        { "id": "minecraftname", "label": "Minecraft naam", "style": "SHORT", "required": true, "max": 120 },
+        { "id": "payment", "label": "Hoe ben je het verloren?", "style": "PARAGRAPH", "required": true, "max": 120 },
+        { "id": "date", "label": "Dag van gebeurtenis", "style": "SHORT", "required": true, "max": 1200 },
+        { "id": "extra", "label": "Extra info / bewijs", "style": "PARAGRAPH", "required": false, "max": 1200 }
+      ],
+      "report": [
+        { "id": "target", "label": "Wie rapporteer je? (naam / ID)", "style": "SHORT", "required": true, "max": 120 },
+        { "id": "what", "label": "Wat is er gebeurd?", "style": "PARAGRAPH", "required": true, "max": 1500 },
+        { "id": "proof", "label": "Bewijs (links / uitleg)", "style": "PARAGRAPH", "required": false, "max": 1500 }
+      ]
+    }
+  }
+}

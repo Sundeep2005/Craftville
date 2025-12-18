@@ -1,0 +1,34 @@
+{
+  "name": "craftville",
+  "version": "1.0.0",
+  "description": "Craftville support discord bot",
+  "homepage": "https://github.com/Sundeep2005/Craftville-support-bot#readme",
+  "bugs": {
+    "url": "https://github.com/Sundeep2005/Craftville-support-bot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sundeep2005/Craftville-support-bot.git"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "Sundeep ten Brinke",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^1.13.1",
+    "discord-html-transcripts": "^3.2.0",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.2.3",
+    "minecraft-server-util": "^5.4.4",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
