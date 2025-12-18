@@ -477,7 +477,7 @@ module.exports = {
       } catch (e) {
         console.error(e);
 
-        const msg = "Er ging iets mis bij het uitvoeren van dit commando.";
+        const msg = "Er ging iets mis bij het uitvoeren van dit command.";
         try {
           if (interaction.deferred || interaction.replied) {
             await interaction.editReply({ content: `❌ ${msg}` });
