@@ -34,7 +34,7 @@ module.exports = {
 
   async execute(interaction) {
     if (!isStaff(interaction.member)) {
-      return interaction.reply({
+      return interaction.editReply({
         content: "❌ Alleen staff kan dit commando gebruiken.",
         flags: MessageFlags.Ephemeral,
       });
@@ -45,14 +45,14 @@ module.exports = {
 
     const shareId = parseShareId(sharelink);
     if (!shareId) {
-      return interaction.reply({
+      return interaction.editReply({
         content:
           "❌ Ongeldige Discohook share link.\nGebruik bijvoorbeeld: `https://discohook.app/?share=...`",
         flags: MessageFlags.Ephemeral,
       });
     }
 
-    await interaction.reply({
+    await interaction.editReply({
       content: "⏳ Bezig… Ik haal de embed op vanuit Discohook.",
       flags: MessageFlags.Ephemeral,
     });
