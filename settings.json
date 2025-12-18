@@ -10,7 +10,8 @@
     "serverStore": "https://craftville.nl/store"
   },
   "channels": {
-    "logChannelId": "1450908988987281539"
+    "logChannelId": "1450908988987281539",
+    "createVoiceChannel": "1451201513941635193"
   },
   "roles": {
     "staffRoleIds": ["1450910722333610058"]

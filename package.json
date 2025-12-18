@@ -21,10 +21,14 @@
   },
   "dependencies": {
     "@discordjs/builders": "^1.13.1",
+    "better-sqlite3": "^12.5.0",
+    "canvacord": "^6.0.4",
+    "canvas": "^3.2.0",
     "discord-html-transcripts": "^3.2.0",
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
     "minecraft-server-util": "^5.4.4",
+    "quick.db": "^9.1.7",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   },
