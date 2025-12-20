@@ -4,6 +4,8 @@ const { status } = require("minecraft-server-util");
 
 function isStaff(member) {
   const staffRoleIds = settings?.roles?.staffRoleIds || [];
+  const developer = settings?.developerIds || [];
+  if (developer.includes(member?.id)) return true;
   return staffRoleIds.some((id) => member?.roles?.cache?.has(id));
 }
 

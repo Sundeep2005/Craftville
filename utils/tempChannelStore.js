@@ -1,5 +1,5 @@
 const { QuickDB } = require('quick.db');
-const db = new QuickDB({ filePath: '../../tempChannels.sqlite' });
+const db = new QuickDB({ filePath: './/tempChannels.sqlite' });
 
 class TempChannelsStore {
   async create(ownerId, channelId) {

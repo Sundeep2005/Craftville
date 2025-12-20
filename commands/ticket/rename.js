@@ -4,6 +4,8 @@ const { getTicketByChannelId } = require("../../database/queries");
 
 function isStaff(member) {
   const staffRoleIds = settings?.roles?.staffRoleIds || [];
+  const developer = settings?.developerIds || [];
+  if (developer.includes(member.id)) return true;
   return (
     member.permissions.has(PermissionFlagsBits.ManageChannels) ||
     member.permissions.has(PermissionFlagsBits.ManageGuild) ||

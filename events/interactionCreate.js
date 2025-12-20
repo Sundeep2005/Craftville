@@ -50,12 +50,12 @@ module.exports = {
 
     const RR_MENU_ID = "rr_select_roles";
     const RR_MANAGED_ROLE_IDS = [
-      "1451179998223405079",
-      "1451180038492786729",
-      "1451180215744200735",
-      "1451180059418300489",
-      "1451180081283334154",
-      "1451180103425065001"
+      "1363967171679490128",
+      "1366742819045249044",
+      "1410711251943817236",
+      "1363967240910667947",
+      "1381976315653001226",
+      "1440775739300642876"
     ];
 
     if (interaction.isStringSelectMenu() && interaction.customId === RR_MENU_ID) {
@@ -250,242 +250,252 @@ module.exports = {
         ],
       });
 
-      const { getDb } = require("../database/sqlite");
-      await getDb().run(`UPDATE tickets SET channelId = ? WHERE id = ?`, [ch.id, ticketId]);
+      if (catCfg?.staffRoleIds?.length) {
+        for (const roleId of catCfg.staffRoleIds) {
+          await ch.permissionOverwrites.create(roleId, {
+            ViewChannel: true,
+            SendMessages: true,
+            ReadMessageHistory: true,
+          });
+        }
 
-      const questions = settings.tickets.modalQuestions?.[type] || [];
-      const limited = type === "sollicitatie" ? questions.slice(0, 4) : questions.slice(0, 5);
+        const { getDb } = require("../database/sqlite");
+        await getDb().run(`UPDATE tickets SET channelId = ? WHERE id = ?`, [ch.id, ticketId]);
 
-      const answers = [];
+        const questions = settings.tickets.modalQuestions?.[type] || [];
+        const limited = type === "sollicitatie" ? questions.slice(0, 4) : questions.slice(0, 5);
 
-      if (type === "sollicitatie") {
-        const values = interaction.fields.getStringSelectValues("functie");
-        const functieValue = values?.[0] ?? null;
-        const functieLabel =
-          (settings.tickets.applicationRoles || []).find(r => r.value === functieValue)?.label
-          ?? functieValue
-          ?? "Onbekend";
+        const answers = [];
 
-        answers.push({
-          questionId: "functie",
-          label: "Voor welke functie solliciteer je?",
-          value: functieLabel,
-        });
-      }
+        if (type === "sollicitatie") {
+          const values = interaction.fields.getStringSelectValues("functie");
+          const functieValue = values?.[0] ?? null;
+          const functieLabel =
+            (settings.tickets.applicationRoles || []).find(r => r.value === functieValue)?.label
+            ?? functieValue
+            ?? "Onbekend";
 
-      for (const q of limited) {
-        answers.push({
-          questionId: q.id,
-          label: q.label,
-          value: interaction.fields.getTextInputValue(q.id),
-        });
-      }
+          answers.push({
+            questionId: "functie",
+            label: "Voor welke functie solliciteer je?",
+            value: functieLabel,
+          });
+        }
 
-      await insertTicketAnswers(ticketId, answers);
+        for (const q of limited) {
+          answers.push({
+            questionId: q.id,
+            label: q.label,
+            value: interaction.fields.getTextInputValue(q.id),
+          });
+        }
 
-      const e = baseEmbed()
-        .setTitle(`🎫 ${catCfg.label} Ticket`)
-        .setDescription(
-          `Hey <@${interaction.user.id}>! Bedankt dat je contact opneemt met het Craftville Support Team!\n\n**Ingevulde antwoorden:**`
-        )
-        .addFields(
-          answers.map((a) => ({
-            name: a.label,
-            value: a.value?.slice(0, 1024) || "-",
-            inline: false,
-          }))
+        await insertTicketAnswers(ticketId, answers);
+
+        const e = baseEmbed()
+          .setTitle(`🎫 ${catCfg.label} Ticket`)
+          .setDescription(
+            `Hey <@${interaction.user.id}>! Bedankt dat je contact opneemt met het Craftville Support Team!\n\n**Ingevulde antwoorden:**`
+          )
+          .addFields(
+            answers.map((a) => ({
+              name: a.label,
+              value: a.value?.slice(0, 1024) || "-",
+              inline: false,
+            }))
+          );
+
+        const buttons = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId("ticket_btn:claim").setLabel("Claim").setStyle(ButtonStyle.Primary),
+          new ButtonBuilder().setCustomId("ticket_btn:transcript").setLabel("Transcript").setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId("ticket_btn:close").setLabel("Close").setStyle(ButtonStyle.Danger),
         );
 
-      const buttons = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId("ticket_btn:claim").setLabel("Claim").setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId("ticket_btn:transcript").setLabel("Transcript").setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId("ticket_btn:close").setLabel("Close").setStyle(ButtonStyle.Danger),
-      );
-
-      await ch.send({ content: `<@${interaction.user.id}>`, embeds: [e], components: [buttons] });
-
-      return interaction.reply({
-        embeds: [infoEmbed("✅ Ticket aangemaakt", `Je ticket is aangemaakt: ${ch}`)],
-        flags: MessageFlags.Ephemeral,
-      });
-    }
-
-    if (interaction.isButton()) {
-      const customId = interaction.customId || "";
-      if (!customId.startsWith("ticket_btn:")) return;
-
-      const action = customId.split(":")[1];
-
-      const ticket = await getTicketByChannelId(interaction.guildId, interaction.channelId);
-      if (!ticket) {
-        return interaction.reply({
-          embeds: [errorEmbed("Dit kanaal is geen ticket.")],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      if (action === "claim") {
-        if (!isStaff(interaction.member)) {
-          return interaction.reply({
-            embeds: [errorEmbed("Alleen staff kan claimen.")],
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-        await setClaimedBy(interaction.guildId, interaction.channelId, interaction.user.id);
-        await interaction.channel.send({
-          embeds: [infoEmbed("✅ Ticket geclaimd", `Geclaimd door <@${interaction.user.id}>.`)],
-        });
-        return interaction.reply({
-          embeds: [infoEmbed("✅ Gelukt", "Je hebt dit ticket geclaimd.")],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      if (action === "transcript") {
-        if (!isStaff(interaction.member)) {
-          return interaction.reply({
-            embeds: [errorEmbed("Alleen staff kan een transcript genereren.")],
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-        const file = await buildTranscript(interaction.channel);
-        return interaction.reply({
-          embeds: [infoEmbed("📄 Transcript", "Transcript is gegenereerd.")],
-          files: [file],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      if (action === "close") {
-        const isOwner = interaction.user.id === ticket.ownerId;
-        if (!isStaff(interaction.member) && !isOwner) {
-          return interaction.reply({
-            embeds: [errorEmbed("Alleen staff of de ticket-maker kan Close starten.")],
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        if (ticket.status !== "open") {
-          return interaction.reply({
-            embeds: [errorEmbed("Dit ticket is niet open.")],
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        await requestClose(interaction.guildId, interaction.channelId, interaction.user.id);
-
-        const row = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId("ticket_btn:confirm_delete")
-            .setLabel("Definitief verwijderen")
-            .setStyle(ButtonStyle.Danger),
-          new ButtonBuilder()
-            .setCustomId("ticket_btn:cancel_close")
-            .setLabel("Annuleren")
-            .setStyle(ButtonStyle.Secondary)
-        );
-
-        const panelMsg = await interaction.channel.send({
-          embeds: [
-            infoEmbed(
-              "⚠️ Sluiten aangevraagd",
-              "Dit ticket staat op sluiten.\n\n✅ Reageer om het open te houden\n🗑️ Of druk op **Definitief verwijderen** om direct te sluiten"
-            ),
-          ],
-          components: [row],
-        });
-
-        await setClosePanelMessageId(interaction.guildId, interaction.channelId, panelMsg.id);
+        await ch.send({ content: `<@${interaction.user.id}>`, embeds: [e], components: [buttons] });
 
         return interaction.reply({
-          embeds: [infoEmbed("✅ Close flow gestart", "Close-aanvraag geplaatst.")],
+          embeds: [infoEmbed("✅ Ticket aangemaakt", `Je ticket is aangemaakt: ${ch}`)],
           flags: MessageFlags.Ephemeral,
         });
       }
 
-      if (action === "cancel_close") {
-        const isOwner = interaction.user.id === ticket.ownerId;
-        if (!isStaff(interaction.member) && !isOwner) {
+      if (interaction.isButton()) {
+        const customId = interaction.customId || "";
+        if (!customId.startsWith("ticket_btn:")) return;
+
+        const action = customId.split(":")[1];
+
+        const ticket = await getTicketByChannelId(interaction.guildId, interaction.channelId);
+        if (!ticket) {
           return interaction.reply({
-            embeds: [errorEmbed("Alleen staff of de ticket-maker kan annuleren.")],
+            embeds: [errorEmbed("Dit kanaal is geen ticket.")],
             flags: MessageFlags.Ephemeral,
           });
         }
 
-        if (ticket.status !== "closing") {
-          return interaction.reply({
-            embeds: [errorEmbed("Er is geen actieve close-aanvraag.")],
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        await cancelClose(interaction.guildId, interaction.channelId);
-
-        if (interaction.message?.components?.length) {
-          const disabled = disableRow(interaction.message.components[0]);
-          await interaction.message.edit({
-            embeds: [infoEmbed("✅ Close geannuleerd", `Geannuleerd door <@${interaction.user.id}>.`)],
-            components: [disabled],
-          });
-        }
-
-        return interaction.reply({
-          embeds: [infoEmbed("✅ Gelukt", "Close-aanvraag geannuleerd.")],
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      if (action === "confirm_delete") {
-        if (ticket.status !== "closing") {
-          return interaction.reply({
-            embeds: [errorEmbed("Je kunt alleen definitief verwijderen nadat Close is aangevraagd (status: closing).")],
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        if (interaction.message?.components?.length) {
-          const disabled = disableRow(interaction.message.components[0]);
-          await interaction.message.edit({
-            embeds: [infoEmbed("🗑️ Definitief sluiten", `Gestart door <@${interaction.user.id}>.`)],
-            components: [disabled],
-          });
-        }
-
-        await interaction.reply({
-          embeds: [infoEmbed("🔒 Sluiten…", "Ticket wordt definitief gesloten.")],
-          flags: MessageFlags.Ephemeral,
-        });
-
-        await closeTicketFlow(client, interaction.channel, {
-          reason: `Definitief gesloten door ${interaction.user.tag}`,
-        });
-
-        return;
-      }
-    }
-
-    if (interaction.isChatInputCommand()) {
-      const cmd = client.commands.get(interaction.commandName);
-      if (!cmd) return;
-
-      try {
-        if (!interaction.deferred && !interaction.replied) {
-          await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-        }
-
-        await cmd.execute(interaction, client);
-      } catch (e) {
-        console.error(e);
-
-        const msg = "Er ging iets mis bij het uitvoeren van dit command.";
-        try {
-          if (interaction.deferred || interaction.replied) {
-            await interaction.editReply({ content: `❌ ${msg}` });
-          } else {
-            await interaction.reply({ content: `❌ ${msg}`, flags: MessageFlags.Ephemeral });
+        if (action === "claim") {
+          if (!isStaff(interaction.member)) {
+            return interaction.reply({
+              embeds: [errorEmbed("Alleen staff kan claimen.")],
+              flags: MessageFlags.Ephemeral,
+            });
           }
-        } catch { }
+          await setClaimedBy(interaction.guildId, interaction.channelId, interaction.user.id);
+          await interaction.channel.send({
+            embeds: [infoEmbed("✅ Ticket geclaimd", `Geclaimd door <@${interaction.user.id}>.`)],
+          });
+          return interaction.reply({
+            embeds: [infoEmbed("✅ Gelukt", "Je hebt dit ticket geclaimd.")],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        if (action === "transcript") {
+          if (!isStaff(interaction.member)) {
+            return interaction.reply({
+              embeds: [errorEmbed("Alleen staff kan een transcript genereren.")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+          const file = await buildTranscript(interaction.channel);
+          return interaction.reply({
+            embeds: [infoEmbed("📄 Transcript", "Transcript is gegenereerd.")],
+            files: [file],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        if (action === "close") {
+          const isOwner = interaction.user.id === ticket.ownerId;
+          if (!isStaff(interaction.member) && !isOwner) {
+            return interaction.reply({
+              embeds: [errorEmbed("Alleen staff of de ticket-maker kan Close starten.")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          if (ticket.status !== "open") {
+            return interaction.reply({
+              embeds: [errorEmbed("Dit ticket is niet open.")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          await requestClose(interaction.guildId, interaction.channelId, interaction.user.id);
+
+          const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId("ticket_btn:confirm_delete")
+              .setLabel("Definitief verwijderen")
+              .setStyle(ButtonStyle.Danger),
+            new ButtonBuilder()
+              .setCustomId("ticket_btn:cancel_close")
+              .setLabel("Annuleren")
+              .setStyle(ButtonStyle.Secondary)
+          );
+
+          const panelMsg = await interaction.channel.send({
+            embeds: [
+              infoEmbed(
+                "⚠️ Sluiten aangevraagd",
+                "Dit ticket staat op sluiten.\n\n✅ Reageer om het open te houden\n🗑️ Of druk op **Definitief verwijderen** om direct te sluiten"
+              ),
+            ],
+            components: [row],
+          });
+
+          await setClosePanelMessageId(interaction.guildId, interaction.channelId, panelMsg.id);
+
+          return interaction.reply({
+            embeds: [infoEmbed("✅ Close flow gestart", "Close-aanvraag geplaatst.")],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        if (action === "cancel_close") {
+          const isOwner = interaction.user.id === ticket.ownerId;
+          if (!isStaff(interaction.member) && !isOwner) {
+            return interaction.reply({
+              embeds: [errorEmbed("Alleen staff of de ticket-maker kan annuleren.")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          if (ticket.status !== "closing") {
+            return interaction.reply({
+              embeds: [errorEmbed("Er is geen actieve close-aanvraag.")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          await cancelClose(interaction.guildId, interaction.channelId);
+
+          if (interaction.message?.components?.length) {
+            const disabled = disableRow(interaction.message.components[0]);
+            await interaction.message.edit({
+              embeds: [infoEmbed("✅ Close geannuleerd", `Geannuleerd door <@${interaction.user.id}>.`)],
+              components: [disabled],
+            });
+          }
+
+          return interaction.reply({
+            embeds: [infoEmbed("✅ Gelukt", "Close-aanvraag geannuleerd.")],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        if (action === "confirm_delete") {
+          if (ticket.status !== "closing") {
+            return interaction.reply({
+              embeds: [errorEmbed("Je kunt alleen definitief verwijderen nadat Close is aangevraagd (status: closing).")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          if (interaction.message?.components?.length) {
+            const disabled = disableRow(interaction.message.components[0]);
+            await interaction.message.edit({
+              embeds: [infoEmbed("🗑️ Definitief sluiten", `Gestart door <@${interaction.user.id}>.`)],
+              components: [disabled],
+            });
+          }
+
+          await interaction.reply({
+            embeds: [infoEmbed("🔒 Sluiten…", "Ticket wordt definitief gesloten.")],
+            flags: MessageFlags.Ephemeral,
+          });
+
+          await closeTicketFlow(client, interaction.channel, {
+            reason: `Definitief gesloten door ${interaction.user.tag}`,
+          });
+
+          return;
+        }
+      }
+
+      if (interaction.isChatInputCommand()) {
+        const cmd = client.commands.get(interaction.commandName);
+        if (!cmd) return;
+
+        try {
+          if (!interaction.deferred && !interaction.replied) {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+          }
+
+          await cmd.execute(interaction, client);
+        } catch (e) {
+          console.error(e);
+
+          const msg = "Er ging iets mis bij het uitvoeren van dit command.";
+          try {
+            if (interaction.deferred || interaction.replied) {
+              await interaction.editReply({ content: `❌ ${msg}` });
+            } else {
+              await interaction.reply({ content: `❌ ${msg}`, flags: MessageFlags.Ephemeral });
+            }
+          } catch { }
+        }
       }
     }
-  },
-};
+  }
+}

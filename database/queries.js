@@ -29,6 +29,19 @@ async function createTicket({ guildId, ownerId, channelId, type }) {
   return res.lastID;
 }
 
+async function updateLastActivity(guildId, channelId, userId = null) {
+  const db = getDb();
+  const now = Date.now();
+
+  await db.run(
+    `UPDATE tickets
+     SET lastActivityAt = ?,
+         lastActivityBy = COALESCE(?, lastActivityBy)
+     WHERE guildId = ? AND channelId = ? AND status IN ('open','closing')`,
+    [now, userId, guildId, channelId]
+  );
+}
+
 async function insertTicketAnswers(ticketId, answers) {
   const db = getDb();
   const stmt = await db.prepare(

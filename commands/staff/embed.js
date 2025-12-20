@@ -10,7 +10,11 @@ const { parseShareId, fetchDiscohookShare } = require("../../utils/discohook");
 
 function isStaff(member) {
   const staffRoleIds = settings?.roles?.staffRoleIds || [];
-  return staffRoleIds.some((id) => member?.roles?.cache?.has(id));
+  const developer = settings?.developerIds || [];
+
+  if (developer.includes(member.id)) return true;
+  if (member.permissions.has(PermissionFlagsBits.ManageGuild)) return true;
+  return staffRoleIds.some(id => member.roles.cache.has(id));
 }
 
 module.exports = {

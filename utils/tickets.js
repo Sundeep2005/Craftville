@@ -1,8 +1,16 @@
 const settings = require("../settings.json");
+const { PermissionFlagsBits } = require("discord.js");
 
 function isStaff(member) {
-  const staffRoleIds = settings.roles.staffRoleIds || [];
-  return staffRoleIds.some((id) => member.roles.cache.has(id));
+  if (!member) return false;
+
+  const staffRoleIds = settings?.roles?.staffRoleIds || [];
+  const developerIds = settings?.developerIds || [];
+
+  if (developerIds.includes(member.id)) return true;
+  if (member.permissions?.has(PermissionFlagsBits.ManageGuild)) return true;
+
+  return staffRoleIds.some(id => member.roles?.cache?.has(id));
 }
 
 function sanitizeChannelPart(str) {

@@ -16,10 +16,11 @@ const RR_ROLES = settings?.roleReaction?.roles || [];
 
 function isStaff(member) {
   const staffRoleIds = settings?.roles?.staffRoleIds || [];
-  return (
-    member.permissions.has(PermissionFlagsBits.ManageGuild) ||
-    staffRoleIds.some(id => member.roles.cache.has(id))
-  );
+  const developer = settings?.developerIds || [];
+
+  if (developer.includes(member.id)) return true;
+  if (member.permissions.has(PermissionFlagsBits.ManageGuild)) return true;
+  return staffRoleIds.some(id => member.roles.cache.has(id));
 }
 
 module.exports = {

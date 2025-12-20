@@ -14,8 +14,9 @@
     "createVoiceChannel": "1451201513941635193",
     "welcomeChannelId": "1450905688808230933"
   },
+  "developerIds": ["430282288295575552"],
   "roles": {
-    "staffRoleIds": ["1450910722333610058"]
+    "staffRoleIds": ["1107004828510605464", "545633350757384204"]
   },
 
   "suggestions": {
@@ -44,12 +45,12 @@
 
   "roleReaction": {
   "roles": [
-    { "label": "Evenementen", "roleId": "1451179998223405079", "emoji": "🎮", "description": "Meldingen voor events" },
-    { "label": "Server-Updates", "roleId": "1451180038492786729", "emoji": "🧾", "description": "Updates & bugfixes" },
-    { "label": "Content", "roleId": "1451180215744200735", "emoji": "🎥", "description": "Content meldingen" },
-    { "label": "Roleplay", "roleId": "1451180059418300489", "emoji": "🕵️", "description": "RP meldingen" },
-    { "label": "Politiek", "roleId": "1451180081283334154", "emoji": "🗳️", "description": "Politiek RP meldingen" },
-    { "label": "Deaths", "roleId": "1451180103425065001", "emoji": "☠️", "description": "Deathmeldingen" }
+    { "label": "Evenementen", "roleId": "1363967171679490128", "emoji": "🎮", "description": "Meldingen voor events" },
+    { "label": "Server-Updates", "roleId": "1366742819045249044", "emoji": "🧾", "description": "Updates & bugfixes" },
+    { "label": "Content", "roleId": "1410711251943817236", "emoji": "🎥", "description": "Content meldingen" },
+    { "label": "Roleplay", "roleId": "1363967240910667947", "emoji": "🕵️", "description": "RP meldingen" },
+    { "label": "Politiek", "roleId": "1381976315653001226", "emoji": "🗳️", "description": "Politiek RP meldingen" },
+    { "label": "Deaths", "roleId": "1440775739300642876", "emoji": "☠️", "description": "Deathmeldingen" }
   ]
 },
 
