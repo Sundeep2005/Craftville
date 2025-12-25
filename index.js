@@ -4,6 +4,7 @@ const { loadCommands } = require("./handlers/commandHandler");
 const { loadEvents } = require("./handlers/eventHandler");
 const { initDb } = require("./database/sqlite");
 const { startInactivityLoop } = require("./utils/inactivity");
+const { runMigrations } = require("./database/migrations");
 
 const client = new Client({
   intents: [
