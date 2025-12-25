@@ -10,13 +10,13 @@
     "serverStore": "https://craftville.nl/store"
   },
   "channels": {
-    "logChannelId": "1450908988987281539",
-    "createVoiceChannel": "1451201513941635193",
-    "welcomeChannelId": "1450905688808230933"
+    "logChannelId": "1358079539561107456",
+    "createVoiceChannel": "817387045999083580",
+    "welcomeChannelId": "1344002014320791622"
   },
   "developerIds": ["430282288295575552"],
   "roles": {
-    "staffRoleIds": ["1107004828510605464", "545633350757384204"]
+    "staffRoleIds": ["1107004828510605464", "1376359275630301285", "545633350757384204"]
   },
 
   "suggestions": {
@@ -35,7 +35,7 @@
   },
 
   "serverStatus": {
-    "host": "play.craftville.nl",
+    "host": "45.136.215.165",
     "port": 25565,
     "updateIntervalSeconds": 10,
     "websiteUrl": "https://craftville.nl",
@@ -44,15 +44,15 @@
   },
 
   "roleReaction": {
-  "roles": [
-    { "label": "Evenementen", "roleId": "1363967171679490128", "emoji": "🎮", "description": "Meldingen voor events" },
-    { "label": "Server-Updates", "roleId": "1366742819045249044", "emoji": "🧾", "description": "Updates & bugfixes" },
-    { "label": "Content", "roleId": "1410711251943817236", "emoji": "🎥", "description": "Content meldingen" },
-    { "label": "Roleplay", "roleId": "1363967240910667947", "emoji": "🕵️", "description": "RP meldingen" },
-    { "label": "Politiek", "roleId": "1381976315653001226", "emoji": "🗳️", "description": "Politiek RP meldingen" },
-    { "label": "Deaths", "roleId": "1440775739300642876", "emoji": "☠️", "description": "Deathmeldingen" }
-  ]
-},
+    "roles": [
+      { "label": "Evenementen", "roleId": "1363967171679490128", "emoji": "🎮", "description": "Meldingen voor events" },
+      { "label": "Server-Updates", "roleId": "1366742819045249044", "emoji": "🧾", "description": "Updates & bugfixes" },
+      { "label": "Content", "roleId": "1410711251943817236", "emoji": "🎥", "description": "Content meldingen" },
+      { "label": "Roleplay", "roleId": "1363967240910667947", "emoji": "🕵️", "description": "RP meldingen" },
+      { "label": "Politiek", "roleId": "1381976315653001226", "emoji": "🗳️", "description": "Politiek RP meldingen" },
+      { "label": "Deaths", "roleId": "1440775739300642876", "emoji": "☠️", "description": "Deathmeldingen" }
+    ]
+  },
 
   "tickets": {
     "oneTicketPerUser": true,
@@ -72,12 +72,42 @@
       "deleteDelaySeconds": 5
     },
     "categories": {
-      "support": { "label": "Support", "emoji": "🛟", "categoryId": "1447691254832828457" },
-      "sollicitatie": { "label": "Sollicitatie", "emoji": "📝", "categoryId": "1447772815578366115" },
-      "bug": { "label": "Bug", "emoji": "🐛", "categoryId": "1447772796578041921" },
-      "content": { "label": "Content", "emoji": "🎨", "categoryId": "1447772880891805696" },
-      "refund": { "label": "Refund", "emoji": "💸", "categoryId": "1447772841075282103" },
-      "report": { "label": "Report", "emoji": "🚨", "categoryId": "1447772863401820342" }
+      "support": { 
+        "label": "Support", 
+        "emoji": "🛟", 
+        "categoryId": "1363962986221404170",
+        "staffRoleIds": ["1107004828510605464", "1376359275630301285", "545633350757384204"]
+      },
+      "sollicitatie": { 
+        "label": "Sollicitatie", 
+        "emoji": "📝", 
+        "categoryId": "822185380488675378",
+        "staffRoleIds": ["1107004828510605464", "1376359275630301285", "545633350757384204"]
+      },
+      "bug": { 
+        "label": "Bug", 
+        "emoji": "🐛", 
+        "categoryId": "1361299820907860060",
+        "staffRoleIds": ["1107004828510605464", "1376359275630301285", "545633350757384204"]
+      },
+      "content": { 
+        "label": "Content", 
+        "emoji": "🎨", 
+        "categoryId": "1345876648964132964",
+        "staffRoleIds": ["1107004828510605464", "1376359275630301285", "545633350757384204"]
+      },
+      "refund": { 
+        "label": "Refund", 
+        "emoji": "💸", 
+        "categoryId": "1364315641783390420",
+        "staffRoleIds": ["1107004828510605464", "1376359275630301285", "545633350757384204"]
+      },
+      "report": { 
+        "label": "Report", 
+        "emoji": "🚨", 
+        "categoryId": "1368252867122565170",
+        "staffRoleIds": ["1107004828510605464", "1376359275630301285", "545633350757384204"]
+      }
     },
     "modalQuestions": {
       "support": [

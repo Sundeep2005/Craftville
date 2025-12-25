@@ -13,7 +13,7 @@ module.exports = {
         .setColor(settings.bot.embedColor || '#F5A623')
         .setTitle('👋 WELKOM OP **CRAFTVILLE**')
         .setDescription(
-          `Hey ${member.displayName}, welkom in de **Craftville** discord server,\nlees <#1440333908926267402>!\n\n` +
+          `Hey **${member.displayName}**, welkom in de **Craftville** discord server,\nlees <#793127164043067413>!\n\n` +
           '• Java — `play.craftville.nl`\n' +
           '• Bedrock — `pe.craftville.nl:19132`'       
         )
