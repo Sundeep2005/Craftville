@@ -340,12 +340,37 @@ module.exports = {
               flags: MessageFlags.Ephemeral,
             });
           }
-          await setClaimedBy(interaction.guildId, interaction.channelId, interaction.user.id);
-          await interaction.channel.send({
-            embeds: [infoEmbed("✅ Ticket geclaimd", `Geclaimd door <@${interaction.user.id}>.`)],
-          });
+
+          const catCfg = settings.tickets.categories?.[ticket.type];
+          const staffRoleIds = catCfg?.staffRoleIds ?? [];
+          if (!staffRoleIds.length) {
+            return interaction.reply({
+              embeds: [errorEmbed("Geen staffRoleIds gevonden voor deze ticket categorie.")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          const alreadyClaimedBy = ticket.claimedBy;
+
+          if (!alreadyClaimedBy) {
+            await setClaimedBy(interaction.guildId, interaction.channelId, interaction.user.id);
+
+            await lockToClaimers(interaction.channel, staffRoleIds, interaction.user.id);
+
+            await interaction.channel.send({
+              embeds: [infoEmbed("✅ Ticket geclaimd", `Geclaimd door <@${interaction.user.id}>.\nAndere staff kan niet meer typen tenzij ze ook op **Claim** drukken.`)],
+            });
+
+            return interaction.reply({
+              embeds: [infoEmbed("✅ Gelukt", "Je hebt dit ticket geclaimd. Alleen claimers kunnen nu typen.")],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          await lockToClaimers(interaction.channel, staffRoleIds, interaction.user.id);
+
           return interaction.reply({
-            embeds: [infoEmbed("✅ Gelukt", "Je hebt dit ticket geclaimd.")],
+            embeds: [infoEmbed("✅ Toegevoegd", `Je bent toegevoegd als (co-)claimer. Je kunt nu typen in dit ticket.`)],
             flags: MessageFlags.Ephemeral,
           });
         }
@@ -428,24 +453,29 @@ module.exports = {
             });
           }
 
-          async function safeEdit(interactionOrMessage, payload) {
-            try {
-              const msg = interactionOrMessage.message ?? interactionOrMessage;
-              const client = msg.client ?? interactionOrMessage.client;
-              const channelId = msg.channelId ?? interactionOrMessage.channelId;
+          async function lockToClaimers(channel, staffRoleIds, claimerId) {
+            for (const roleId of staffRoleIds) {
+              await channel.permissionOverwrites.edit(roleId, {
+                ViewChannel: true,
+                ReadMessageHistory: true,
+                SendMessages: false,
+              }).catch(() => { });
+            }
 
-              const ch = await client.channels.fetch(channelId).catch(() => null);
-              if (!ch) return;
-
-              await msg.edit(payload).catch(() => { });
-            } catch { }
+            await channel.permissionOverwrites.edit(claimerId, {
+              ViewChannel: true,
+              ReadMessageHistory: true,
+              SendMessages: true,
+            }).catch(() => { });
           }
+
 
           await cancelClose(interaction.guildId, interaction.channelId);
 
           if (interaction.message?.components?.length) {
+
             const disabled = disableRow(interaction.message.components[0]);
-            await interaction.message.safeEdit({
+            await interaction.message.editReply({
               embeds: [infoEmbed("✅ Close geannuleerd", `Geannuleerd door <@${interaction.user.id}>.`)],
               components: [disabled],
             });
@@ -467,7 +497,7 @@ module.exports = {
 
           if (interaction.message?.components?.length) {
             const disabled = disableRow(interaction.message.components[0]);
-            await interaction.message.safeEdit({
+            await interaction.message.editReply({
               embeds: [infoEmbed("🗑️ Definitief sluiten", `Gestart door <@${interaction.user.id}>.`)],
               components: [disabled],
             });
