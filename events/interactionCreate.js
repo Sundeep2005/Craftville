@@ -428,11 +428,24 @@ module.exports = {
             });
           }
 
+          async function safeEdit(interactionOrMessage, payload) {
+            try {
+              const msg = interactionOrMessage.message ?? interactionOrMessage;
+              const client = msg.client ?? interactionOrMessage.client;
+              const channelId = msg.channelId ?? interactionOrMessage.channelId;
+
+              const ch = await client.channels.fetch(channelId).catch(() => null);
+              if (!ch) return;
+
+              await msg.edit(payload).catch(() => { });
+            } catch { }
+          }
+
           await cancelClose(interaction.guildId, interaction.channelId);
 
           if (interaction.message?.components?.length) {
             const disabled = disableRow(interaction.message.components[0]);
-            await interaction.message.edit({
+            await interaction.message.safeEdit({
               embeds: [infoEmbed("✅ Close geannuleerd", `Geannuleerd door <@${interaction.user.id}>.`)],
               components: [disabled],
             });
@@ -454,7 +467,7 @@ module.exports = {
 
           if (interaction.message?.components?.length) {
             const disabled = disableRow(interaction.message.components[0]);
-            await interaction.message.edit({
+            await interaction.message.safeEdit({
               embeds: [infoEmbed("🗑️ Definitief sluiten", `Gestart door <@${interaction.user.id}>.`)],
               components: [disabled],
             });

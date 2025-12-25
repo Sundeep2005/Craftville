@@ -202,4 +202,5 @@ module.exports = {
   getServerStatusPanel,
   getAllServerStatusPanels,
   setServerStatusMessage,
+  updateLastActivity,
 };

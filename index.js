@@ -19,6 +19,8 @@ const client = new Client({
 
 (async () => {
   await initDb();
+  await initDb();
+  await runMigrations();
   loadCommands(client);
   loadEvents(client);
 
