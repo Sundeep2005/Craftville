@@ -60,6 +60,12 @@ async function lockToClaimers(channel, staffRoleIds, claimerId) {
   }).catch(() => {});
 }
 
+function isLead(member) {
+  const leadRoleIds = settings.tickets?.leadRoleIds || [];
+  if (!leadRoleIds.length) return false;
+  return leadRoleIds.some(roleId => member.roles.cache.has(roleId));
+}
+
 module.exports = {
   name: Events.InteractionCreate,
   async execute(interaction, client) {
@@ -216,10 +222,90 @@ module.exports = {
 
       return interaction.showModal(modal);
     }
+    
+    if (interaction.isStringSelectMenu() && interaction.customId === "sollicitatie_role_select") {
+      const selectedRole = interaction.values[0];
+      
+      const roles = settings.tickets.applicationRoles || [];
+      const roleInfo = roles.find(r => r.value === selectedRole);
+      
+      if (!roleInfo) {
+        return interaction.reply({
+          embeds: [errorEmbed("Ongeldige functie geselecteerd.")],
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      const questionsAll = settings.tickets.modalQuestions?.sollicitatie || [];
+      const questions = questionsAll.filter(q => q.id !== "functie");
+      const limited = questions.slice(0, 5);
+
+      const modal = new ModalBuilder()
+        .setCustomId(`ticket_modal:sollicitatie:${selectedRole}`)
+        .setTitle(`Sollicitatie - ${roleInfo.label}`);
+
+      for (const q of limited) {
+        const input = new TextInputBuilder()
+          .setCustomId(q.id)
+          .setStyle(styleToEnum(q.style))
+          .setRequired(!!q.required)
+          .setMaxLength(q.max ?? 1000);
+
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(
+            input.setLabel(q.label)
+          )
+        );
+      }
+
+      return interaction.showModal(modal);
+    }
+
+    if (interaction.isStringSelectMenu() && interaction.customId === "ticket_assign_select") {
+      const assigneeId = interaction.values[0];
+      const assignee = await interaction.guild.members.fetch(assigneeId).catch(() => null);
+
+      if (!assignee) {
+        return interaction.update({
+          embeds: [errorEmbed("Staff lid niet gevonden.")],
+          components: [],
+        });
+      }
+
+      const ticket = await getTicketByChannelId(interaction.guildId, interaction.channelId);
+      if (!ticket) {
+        return interaction.update({
+          embeds: [errorEmbed("Dit kanaal is geen ticket.")],
+          components: [],
+        });
+      }
+
+      await interaction.deferUpdate();
+
+      const catCfg = settings.tickets.categories?.[ticket.type];
+      const staffRoleIds = catCfg?.staffRoleIds ?? [];
+
+      await setClaimedBy(interaction.guildId, interaction.channelId, assigneeId);
+
+      await lockToClaimers(interaction.channel, staffRoleIds, assigneeId);
+
+      await interaction.channel.send({
+        embeds: [infoEmbed(
+          "✅ Ticket toegewezen",
+          `Dit ticket is toegewezen aan <@${assigneeId}> door <@${interaction.user.id}>.`
+        )],
+      });
+
+      await interaction.editReply({
+        embeds: [infoEmbed("✅ Toegewezen", `Ticket is toegewezen aan <@${assigneeId}>.`)],
+        components: [],
+      });
+    }
 
     if (interaction.isModalSubmit() && interaction.customId.startsWith("ticket_modal:")) {
       const parts = interaction.customId.split(":");
       const type = parts[1];
+      const selectedRole = parts[2] || null;
       const catCfg = settings.tickets.categories?.[type];
 
       if (!catCfg?.categoryId) {
@@ -238,6 +324,8 @@ module.exports = {
           });
         }
       }
+
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       const placeholderChannelId = `pending-${interaction.id}`;
       const ticketId = await createTicket({
@@ -287,16 +375,14 @@ module.exports = {
       await getDb().run(`UPDATE tickets SET channelId = ? WHERE id = ?`, [ch.id, ticketId]);
 
       const questions = settings.tickets.modalQuestions?.[type] || [];
-      const limited = type === "sollicitatie" ? questions.slice(0, 4) : questions.slice(0, 5);
+      const limited = questions.filter(q => q.id !== "functie").slice(0, 5);
 
       const answers = [];
 
-      if (type === "sollicitatie") {
-        const values = interaction.fields.getStringSelectValues("functie");
-        const functieValue = values?.[0] ?? null;
+      if (type === "sollicitatie" && selectedRole) {
         const functieLabel =
-          (settings.tickets.applicationRoles || []).find(r => r.value === functieValue)?.label
-          ?? functieValue
+          (settings.tickets.applicationRoles || []).find(r => r.value === selectedRole)?.label
+          ?? selectedRole
           ?? "Onbekend";
 
         answers.push({
@@ -329,17 +415,31 @@ module.exports = {
           }))
         );
 
-      const buttons = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId("ticket_btn:claim").setLabel("Claim").setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId("ticket_btn:transcript").setLabel("Transcript").setStyle(ButtonStyle.Secondary),
+      const userButtons = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId("ticket_btn:close").setLabel("Close").setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId("ticket_btn:transcript").setLabel("Transcript").setStyle(ButtonStyle.Secondary),
+
       );
 
-      await ch.send({ content: `<@${interaction.user.id}>`, embeds: [e], components: [buttons] });
+      const staffButtons = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId("ticket_btn:claim").setLabel("Claim").setStyle(ButtonStyle.Primary),
+        new ButtonBuilder().setCustomId("ticket_btn:assign").setLabel("Toewijzen").setStyle(ButtonStyle.Secondary),
+      );
 
-      return interaction.reply({
+      await ch.send({ content: `<@${interaction.user.id}>`, embeds: [e], components: [userButtons] });
+
+      const catCfg2 = settings.tickets.categories?.[type];
+      const staffRoleIds2 = catCfg2?.staffRoleIds ?? [];
+      
+      if (staffRoleIds2.length > 0) {
+        await ch.send({ 
+          embeds: [infoEmbed("🛠️ Staff Opties", "Gebruik de knoppen hieronder om dit ticket te beheren:")],
+          components: [staffButtons] 
+        });
+      }
+
+      return interaction.editReply({
         embeds: [infoEmbed("✅ Ticket aangemaakt", `Je ticket is aangemaakt: ${ch}`)],
-        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -353,6 +453,65 @@ module.exports = {
       if (!ticket) {
         return interaction.reply({
           embeds: [errorEmbed("Dit kanaal is geen ticket.")],
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      if (action === "assign") {
+        if (!isStaff(interaction.member)) {
+          return interaction.reply({
+            embeds: [errorEmbed("Alleen staff kan tickets toewijzen.")],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        const catCfg = settings.tickets.categories?.[ticket.type];
+        const staffRoleIds = catCfg?.staffRoleIds ?? [];
+        if (!staffRoleIds.length) {
+          return interaction.reply({
+            embeds: [errorEmbed("Geen staffRoleIds gevonden voor deze ticket categorie.")],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        const staffMembers = [];
+        for (const roleId of staffRoleIds) {
+          const role = interaction.guild.roles.cache.get(roleId);
+          if (role) {
+            role.members.forEach(member => {
+              if (!staffMembers.find(m => m.id === member.id)) {
+                staffMembers.push(member);
+              }
+            });
+          }
+        }
+
+        if (staffMembers.length === 0) {
+          return interaction.reply({
+            embeds: [errorEmbed("Geen staff members gevonden met de staff rollen.")],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        const options = staffMembers.slice(0, 25).map(member =>
+          new StringSelectMenuOptionBuilder()
+            .setLabel(member.user.username)
+            .setValue(member.id)
+            .setDescription(`${member.user.tag}`)
+        );
+
+        const selectMenu = new StringSelectMenuBuilder()
+          .setCustomId("ticket_assign_select")
+          .setPlaceholder("Kies een staff lid...")
+          .setMinValues(1)
+          .setMaxValues(1)
+          .addOptions(options);
+
+        const row = new ActionRowBuilder().addComponents(selectMenu);
+
+        return interaction.reply({
+          embeds: [infoEmbed("👤 Ticket toewijzen", "Selecteer een staff lid om dit ticket aan toe te wijzen:")],
+          components: [row],
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -374,7 +533,10 @@ module.exports = {
           });
         }
 
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
         const alreadyClaimedBy = ticket.claimedBy;
+        const userIsLead = isLead(interaction.member);
 
         if (!alreadyClaimedBy) {
           await setClaimedBy(interaction.guildId, interaction.channelId, interaction.user.id);
@@ -385,17 +547,29 @@ module.exports = {
             embeds: [infoEmbed("✅ Ticket geclaimd", `Geclaimd door <@${interaction.user.id}>.\nAndere staff kan niet meer typen tenzij ze ook op **Claim** drukken.`)],
           });
 
-          return interaction.reply({
+          return interaction.editReply({
             embeds: [infoEmbed("✅ Gelukt", "Je hebt dit ticket geclaimd. Alleen claimers kunnen nu typen.")],
-            flags: MessageFlags.Ephemeral,
           });
+        }
+
+        if (userIsLead) {
+          await setClaimedBy(interaction.guildId, interaction.channelId, interaction.user.id);
         }
 
         await lockToClaimers(interaction.channel, staffRoleIds, interaction.user.id);
 
-        return interaction.reply({
-          embeds: [infoEmbed("✅ Toegevoegd", `Je bent toegevoegd als (co-)claimer. Je kunt nu typen in dit ticket.`)],
-          flags: MessageFlags.Ephemeral,
+        const message = userIsLead 
+          ? "✅ Je bent nu de claimer van dit ticket (als lead heb je de vorige claimer overgenomen)."
+          : "✅ Je bent toegevoegd als (co-)claimer. Je kunt nu typen in dit ticket.";
+
+        if (userIsLead) {
+          await interaction.channel.send({
+            embeds: [infoEmbed("🛡️ Ticket toegewezen aan lead", `<@${interaction.user.id}> heeft dit ticket overgenomen als lead.`)],
+          });
+        }
+
+        return interaction.editReply({
+          embeds: [infoEmbed(userIsLead ? "🛡️ Lead toegewezen" : "✅ Toegevoegd", message)],
         });
       }
 
@@ -406,11 +580,13 @@ module.exports = {
             flags: MessageFlags.Ephemeral,
           });
         }
+
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
         const file = await buildTranscript(interaction.channel);
-        return interaction.reply({
+        return interaction.editReply({
           embeds: [infoEmbed("📄 Transcript", "Transcript is gegenereerd.")],
           files: [file],
-          flags: MessageFlags.Ephemeral,
         });
       }
 
@@ -429,6 +605,8 @@ module.exports = {
             flags: MessageFlags.Ephemeral,
           });
         }
+
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         await requestClose(interaction.guildId, interaction.channelId, interaction.user.id);
 
@@ -455,9 +633,8 @@ module.exports = {
 
         await setClosePanelMessageId(interaction.guildId, interaction.channelId, panelMsg.id);
 
-        return interaction.reply({
+        return interaction.editReply({
           embeds: [infoEmbed("✅ Close flow gestart", "Close-aanvraag geplaatst.")],
-          flags: MessageFlags.Ephemeral,
         });
       }
 
@@ -477,6 +654,8 @@ module.exports = {
           });
         }
 
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
         await cancelClose(interaction.guildId, interaction.channelId);
 
         if (interaction.message?.components?.length) {
@@ -487,9 +666,8 @@ module.exports = {
           });
         }
 
-        return interaction.reply({
+        return interaction.editReply({
           embeds: [infoEmbed("✅ Gelukt", "Close-aanvraag geannuleerd.")],
-          flags: MessageFlags.Ephemeral,
         });
       }
 
@@ -501,6 +679,8 @@ module.exports = {
           });
         }
 
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
         if (interaction.message?.components?.length) {
           const disabled = disableRow(interaction.message.components[0]);
           await interaction.message.edit({
@@ -509,9 +689,8 @@ module.exports = {
           });
         }
 
-        await interaction.reply({
+        await interaction.editReply({
           embeds: [infoEmbed("🔒 Sluiten…", "Ticket wordt definitief gesloten.")],
-          flags: MessageFlags.Ephemeral,
         });
 
         await closeTicketFlow(client, interaction.channel, {

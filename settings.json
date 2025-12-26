@@ -65,7 +65,8 @@
       { "label": "Bouw Team", "value": "builder", "emoji": "🧱" },
       { "label": "Development Team", "value": "developer", "emoji": "💻" },
       { "label": "Event Team", "value": "event", "emoji": "🎊" },
-      { "label": "Content Team", "value": "content", "emoji": "🎥" }
+      { "label": "Content Team", "value": "content", "emoji": "🎥" },
+      { "label": "Open Sollicitatie", "value": "open_sollicitatie", "emoji": "📝" }
     ],
     "close": {
       "deleteChannel": true,
@@ -115,9 +116,9 @@
         { "id": "details", "label": "Leg je vraag uit", "style": "PARAGRAPH", "required": true, "max": 1000 }
       ],
       "sollicitatie": [
-        { "id": "motivatie", "label": "Naam Leeftijd & je motivatie", "style": "PARAGRAPH", "required": true, "max": 4000 },
-        { "id": "ervaring", "label": "Ervaring als staff", "style": "PARAGRAPH", "required": true, "max": 1200 },
-        { "id": "beschrijving", "label": "Vertel iets over jezelf", "style": "PARAGRAPH", "required": true, "max": 1200 }
+        { "id": "motivatie", "label": "Naam Leeftijd & je motivatie", "style": "PARAGRAPH", "required": true, "max": 1200 },
+        { "id": "ervaring", "label": "Ervaring als staff", "style": "PARAGRAPH", "required": true, "max": 4000 },
+        { "id": "beschrijving", "label": "Vertel iets over jezelf", "style": "PARAGRAPH", "required": true, "max": 4000 }
       ],
       "bug": [
         { "id": "waar", "label": "Waar heb je de bug gevonden?", "style": "SHORT", "required": true, "max": 120 },
